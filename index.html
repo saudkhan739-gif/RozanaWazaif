@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#173c32">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<title>روزانہ وظائف</title>
+<style>
+:root{color-scheme:light;--green:#173c32;--gold:#c59b45;--bg:#f5f3ed;--card:#fff;--muted:#777}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:"Noto Naskh Arabic","Noto Nastaliq Urdu",serif;color:#242820}
+header{background:var(--green);color:white;padding:24px 18px 20px;border-radius:0 0 22px 22px}
+h1{font-size:25px;margin:0 0 5px}
+.sub{opacity:.85;font-size:14px}
+main{max-width:680px;margin:auto;padding:15px}
+.summary,.section,.item{background:var(--card);border-radius:16px;padding:14px;margin:12px 0;box-shadow:0 2px 10px #172b1b0d}
+.summary{border:1px solid #e8e1d2}
+.progress{height:9px;background:#e8e6df;border-radius:20px;overflow:hidden;margin:10px 0 6px}
+#bar{height:100%;width:0;background:#25845e;transition:width .2s}
+.section h2{font-size:18px;margin:0 0 10px;color:var(--green)}
+.item{margin:9px 0;padding:12px;border:1px solid #efeee9;box-shadow:none}
+.when{font-size:12px;color:var(--muted);margin-bottom:4px}
+.name{font-size:16px;line-height:1.7;font-weight:700}
+.arabic{font-size:18px;line-height:1.9;text-align:center;margin:8px 0}
+.controls{display:flex;align-items:center;gap:8px;margin-top:10px}
+.count{min-width:72px;text-align:center;font-variant-numeric:tabular-nums;color:#5e625b}
+button{border:0;border-radius:11px;padding:10px 14px;font:inherit;font-size:14px;cursor:pointer}
+.minus{background:#efeee9;color:#333}
+.plus{background:var(--green);color:white;flex:1}
+.plus:disabled{background:#a7b5ad}
+.tick{display:flex;align-items:center;gap:10px;margin-top:10px}
+.tick input{width:21px;height:21px;accent-color:var(--green)}
+.note{font-size:13px;line-height:1.8;color:#686b63;background:#f7f5ef;padding:11px;border-radius:12px}
+footer{font-size:12px;color:#777;text-align:center;padding:18px}
+.reset{background:#fff0ed;color:#8b3528;width:100%;margin-top:12px}
+.editbar{display:flex;gap:8px;margin:12px 0}.editbar button{flex:1;background:#e8eee9;color:var(--green);font-weight:700}
+#editor{display:none;background:#fff;border:1px solid #d8dfd8;border-radius:16px;padding:14px;margin:12px 0}
+#editor h2{margin:0 0 10px;color:var(--green);font-size:19px}
+.field{display:block;margin:9px 0;font-size:14px}.field input,.field select{display:block;width:100%;padding:11px;border:1px solid #d8d8d0;border-radius:9px;font:inherit;margin-top:4px;background:white}
+.editor-actions{display:flex;gap:8px;margin-top:12px}.save-edit{background:var(--green);color:white;flex:1}.cancel-edit{background:#efeee9;color:#333}
+.item-actions{display:flex;gap:7px;margin-top:9px}.item-actions button{font-size:12px;padding:7px 11px;background:#f0f0e9;color:#38463c}.item-actions .delete-item{background:#fff0ed;color:#8b3528}
+</style>
+</head>
+<body>
+<header>
+<h1>روزانہ وظائف</h1>
+<div class="sub">آپ کا ذاتی روزانہ ٹریکر</div>
+</header>
+<main>
+<div class="summary">
+  <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+    <strong>آج کی تکمیل</strong><strong id="percent">0%</strong>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+  <div id="summaryText" class="sub" style="color:#666">0 مرتبہ مکمل</div>
+  <div class="sub" id="today" style="color:#666;margin-top:6px"></div>
+</div>
+<div class="note">ہر مرتبہ پڑھنے کے بعد <b>+ ایک مرتبہ</b> دبائیں۔ ایک مرتبہ کا وظیفہ مکمل ہو تو مکمل کا بٹن دبائیں۔ یہ ٹریکر اسی موبائل کے براؤزر میں آج کی گنتی محفوظ کرتا ہے۔</div>
+<div class="editbar"><button id="openEditor">＋ نیا وظیفہ / ترمیم</button></div>
+<div id="editor">
+ <h2 id="editorHeading">نیا وظیفہ شامل کریں</h2>
+ <label class="field">حصہ / وقت <input id="editGroup" list="groupOptions" placeholder="مثلاً فجر کے بعد" required></label>
+ <datalist id="groupOptions"></datalist>
+ <label class="field">وظیفے کا نام <input id="editName" placeholder="وظیفے کا نام" required></label>
+ <label class="field">عربی عبارت (اگر ہو) <input id="editArabic" placeholder="عربی عبارت"></label>
+ <label class="field">وقت / وضاحت (اختیاری) <input id="editWhen" placeholder="مثلاً نمازِ فجر کے بعد"></label>
+ <label class="field">روزانہ تعداد <input id="editTarget" type="number" min="1" step="1" value="1"></label>
+ <div class="editor-actions"><button class="save-edit" id="saveItem">محفوظ کریں</button><button class="cancel-edit" id="cancelEditor">منسوخ</button></div>
+ <div class="note" style="margin-top:10px">کسی موجودہ وظیفے میں ترمیم کرنے سے اس کی آج کی گنتی برقرار رہے گی۔ حذف کرنے پر صرف اسی وظیفے کی گنتی ختم ہوگی۔</div>
+</div>
+<div id="content"></div>
+<button class="reset" id="reset">آج کی گنتی صفر کریں</button>
+<div class="note" style="margin-top:12px">
+<b>دو باتیں ابھی واضح ہونا باقی ہیں:</b><br>
+۱۔ حزب البحر میں «وَهَبْ لَنَا مِنْ لَدُنْكَ» پر ۷۰ مرتبہ پڑھے جانے والے جملے کے مکمل الفاظ ابھی درج نہیں۔<br>
+۲۔ تسبیحِ فاطمہ کے لیے تعداد/طریقہ حضرت جی کے بتائے ہوئے مطابق رکھیں؛ اس ٹریکر میں فی نماز صرف مکمل ہونے کا نشان ہے۔
+</div>
+</main>
+<footer>اللہ تعالیٰ قبول فرمائے اور پابندی کی توفیق عطا فرمائے۔ آمین</footer>
+<script>
+const groups = [
+ {title:"فجر",items:[
+  {id:"fatiha",name:"سورۂ فاتحہ",when:"فجر کی سنت اور فرض کے درمیان",target:41},
+  {id:"yaseen",name:"سورۂ یٰسین",when:"فجر کے بعد",target:1}
+ ]},
+ ...["فجر","ظہر","عصر","مغرب","عشاء"].map((p,i)=>({title:p+" کی نماز کے بعد",items:[
+  {id:"fatima_"+i,name:"تسبیحِ فاطمہ",check:true},
+  {id:"ist_"+i,name:"استغفار",target:10},
+  {id:"durood_"+i,name:"درود شریف",target:10},
+  {id:"ayat_"+i,name:"آیت الکرسی — خالدون تک",target:1}
+ ]})),
+ {title:"چاشت",items:[
+  {id:"muzammil",name:"سورۂ مزمل",target:11},
+  {id:"dua_chasht",name:"دعا ۷۰ مرتبہ",arabic:"اللَّهُمَّ اكْفِنِي بِحَلَالِكَ عَنْ حَرَامِكَ، وَأَغْنِنِي بِفَضْلِكَ عَمَّنْ سِوَاكَ",target:70,when:"سورۂ مزمل میں «رَبُّ الْمَشْرِقِ وَالْمَغْرِبِ» پر"}
+ ]},
+ {title:"نمازوں کے بعد سورتیں",items:[
+  {id:"fath",name:"سورۂ فتح",when:"ظہر کے بعد",target:1},
+  {id:"naba",name:"سورۂ نبأ",when:"عصر کے بعد",target:1},
+  {id:"waqiah",name:"سورۂ واقعہ",when:"مغرب کے بعد",target:1},
+  {id:"taghabun",name:"سورۂ تغابن",when:"عشاء کے بعد",target:1}
+ ]},
+ {title:"دن بھر کے معمولات",items:[
+  {id:"hizb_general",name:"حزب البحر — عام معمول",target:2},
+  {id:"hizb_debt",name:"حزب البحر — قرضوں کی ادائیگی کے لیے",target:15},
+  {id:"hizb_phrase",name:"«وَهَبْ لَنَا مِنْ لَدُنْكَ» پر مقررہ جملہ",target:70,when:"جملے کے مکمل الفاظ شامل ہونے تک اسے بطور یاددہانی رکھا ہے"},
+  {id:"dalail",name:"دلائل الخیرات — ایک حزب",target:1}
+ ]}
+];
+const key="wazaifTrackerV1";
+const definitionsKey="wazaifGroupsV1";
+const originalGroups=groups.map(g=>({...g,items:g.items.map(x=>({...x}))}));
+try{const custom=JSON.parse(localStorage.getItem(definitionsKey)||"null");if(Array.isArray(custom)&&custom.length)groups.splice(0,groups.length,...custom);}catch(e){}
+let editingId=null;
+const day=()=>new Date().toLocaleDateString("en-CA");
+let state={date:day(),counts:{},checks:{}};
+try{const saved=JSON.parse(localStorage.getItem(key)||"null");if(saved&&saved.date===day())state=saved;}catch(e){}
+function save(){localStorage.setItem(key,JSON.stringify(state));render();}
+function saveDefinitions(){localStorage.setItem(definitionsKey,JSON.stringify(groups));}
+function safeId(){return "custom_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7);}
+function openEditor(item=null,groupTitle=""){
+ editingId=item?item.id:null;
+ document.getElementById("editorHeading").textContent=item?"وظیفے میں ترمیم":"نیا وظیفہ شامل کریں";
+ document.getElementById("editGroup").value=item?groupTitle:groupTitle;
+ document.getElementById("editName").value=item?.name||"";
+ document.getElementById("editArabic").value=item?.arabic||"";
+ document.getElementById("editWhen").value=item?.when||"";
+ document.getElementById("editTarget").value=item?(item.check?1:item.target):1;
+ const dl=document.getElementById("groupOptions");dl.innerHTML="";groups.forEach(g=>{const o=document.createElement("option");o.value=g.title;dl.appendChild(o);});
+ document.getElementById("editor").style.display="block";document.getElementById("editor").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function closeEditor(){document.getElementById("editor").style.display="none";editingId=null;}
+document.getElementById("openEditor").addEventListener("click",()=>openEditor());
+document.getElementById("cancelEditor").addEventListener("click",closeEditor);
+document.getElementById("saveItem").addEventListener("click",()=>{
+ const groupTitle=document.getElementById("editGroup").value.trim(),name=document.getElementById("editName").value.trim(),arabic=document.getElementById("editArabic").value.trim(),when=document.getElementById("editWhen").value.trim(),target=Math.max(1,parseInt(document.getElementById("editTarget").value,10)||1);
+ if(!groupTitle||!name){alert("حصہ / وقت اور وظیفے کا نام ضرور لکھیں۔");return;}
+ let group=groups.find(g=>g.title===groupTitle);if(!group){group={title:groupTitle,items:[]};groups.push(group);}
+ if(editingId){let oldGroup=groups.find(g=>g.items.some(x=>x.id===editingId));let idx=oldGroup.items.findIndex(x=>x.id===editingId);let old=oldGroup.items[idx];if(oldGroup!==group){oldGroup.items.splice(idx,1);group.items.push(old);}Object.assign(old,{name,arabic,when,target,check:!!old.check});}
+ else group.items.push({id:safeId(),name,arabic,when,target});
+ saveDefinitions();closeEditor();render();
+});
+function allItems(){return groups.flatMap(g=>g.items)}
+function render(){
+ const items=allItems();let done=0,total=0;
+ items.forEach(x=>{if(x.check){total++;if(state.checks[x.id])done++;}else{total+=x.target;done+=Math.min(state.counts[x.id]||0,x.target);}});
+ const pct=total?Math.round(done/total*100):0;
+ document.getElementById("percent").textContent=pct+"%";
+ document.getElementById("bar").style.width=pct+"%";
+ document.getElementById("summaryText").textContent=done+" / "+total+" مرحلے/مرتبے مکمل";
+ document.getElementById("today").textContent="تاریخ: "+new Date().toLocaleDateString("ur-IN",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+ const root=document.getElementById("content");root.innerHTML="";
+ groups.forEach(g=>{
+  const sec=document.createElement("section");sec.className="section";
+  const h=document.createElement("h2");h.textContent=g.title;sec.appendChild(h);
+  g.items.forEach(x=>{
+   const card=document.createElement("div");card.className="item";
+   if(x.when){const w=document.createElement("div");w.className="when";w.textContent=x.when;card.appendChild(w);}
+   const n=document.createElement("div");n.className="name";n.textContent=x.name;card.appendChild(n);
+   if(x.arabic){const a=document.createElement("div");a.className="arabic";a.textContent=x.arabic;card.appendChild(a);}
+   if(x.check){
+    const label=document.createElement("label");label.className="tick";
+    const input=document.createElement("input");input.type="checkbox";input.checked=!!state.checks[x.id];
+    input.addEventListener("change",()=>{state.checks[x.id]=input.checked;save();});
+    const span=document.createElement("span");span.textContent=state.checks[x.id]?"مکمل ہوگیا":"مکمل ہونے پر نشان لگائیں";
+    label.append(input,span);card.appendChild(label);
+   }else{
+    const controls=document.createElement("div");controls.className="controls";
+    const count=document.createElement("span");count.className="count";count.textContent=(state.counts[x.id]||0)+" / "+x.target;
+    const minus=document.createElement("button");minus.className="minus";minus.textContent="−";minus.disabled=!(state.counts[x.id]>0);
+    minus.addEventListener("click",()=>{state.counts[x.id]=Math.max(0,(state.counts[x.id]||0)-1);save();});
+    const plus=document.createElement("button");plus.className="plus";plus.textContent=(state.counts[x.id]||0)>=x.target?"مکمل ✓":"+ ایک مرتبہ";
+    plus.disabled=(state.counts[x.id]||0)>=x.target;
+    plus.addEventListener("click",()=>{state.counts[x.id]=Math.min(x.target,(state.counts[x.id]||0)+1);save();});
+    controls.append(count,minus,plus);card.appendChild(controls);
+   }
+   const actions=document.createElement("div");actions.className="item-actions";
+   const edit=document.createElement("button");edit.textContent="ترمیم ✎";edit.addEventListener("click",()=>openEditor(x,g.title));
+   const del=document.createElement("button");del.className="delete-item";del.textContent="حذف";del.addEventListener("click",()=>{if(confirm("کیا یہ وظیفہ حذف کرنا ہے؟")){g.items=g.items.filter(y=>y.id!==x.id);delete state.counts[x.id];delete state.checks[x.id];saveDefinitions();save();}});
+   actions.append(edit,del);card.appendChild(actions);
+   sec.appendChild(card);
+  });
+  root.appendChild(sec);
+ });
+}
+document.getElementById("reset").addEventListener("click",()=>{
+ if(confirm("کیا آج کی تمام گنتی صفر کرنی ہے؟")){state={date:day(),counts:{},checks:{}};save();}
+});
+render();
+if ("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+</script>
+</body>
+</html>
